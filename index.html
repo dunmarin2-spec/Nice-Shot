@@ -16,19 +16,19 @@
         .golf-card { width: 100%; max-width: 500px; margin: 0 auto; background: #ffffff; padding: 25px 20px; display: flex; flex-direction: column; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .card-logo { font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic; color: #1e293b; letter-spacing: -1px; line-height: 0.8; }
         
-        /* 💡 [핵심 수정] 스코어 박스 고정, 글자 영역은 탄력적으로 */
-        .score-input-wrapper { background: #fffbeb; border: 2px solid #b59410; border-radius: 12px; padding: 0 10px; position: relative; display: flex; align-items: center; justify-content: center; width: 110px; height: 70px; overflow: hidden; }
+        .score-input-wrapper { background: #fffbeb; border: 2px solid #b59410; border-radius: 12px; position: relative; display: flex; align-items: center; justify-content: center; width: 110px; height: 75px; overflow: visible; }
+        .score-font { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 44px; line-height: 1; color: #b59410; text-align: center; width: 100%; background: transparent; padding-top: 5px; }
         
-        /* 💡 글자 수축을 위해 min-width: 0 설정 */
-        .score-font { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 50px; line-height: 1; color: #b59410; text-align: center; width: 100%; background: transparent; display: block; padding: 0; margin: 0; min-width: 0; }
-        
-        /* placeholder 크기도 기본 16px에서 수축 시작 */
-        .score-font::placeholder { font-size: 16px; color: #d4af37; font-weight: 600; text-align: center; opacity: 0.7; letter-spacing: -0.5px; }
+        .score-font::placeholder { font-size: 14px; color: #d4af37; font-weight: 600; text-align: center; opacity: 0.7; }
         
         .rendering .score-input-wrapper { border: none; background: transparent; padding: 0; height: auto; width: auto; overflow: visible; }
-        
+        .rendering .score-font { padding-top: 10px; } 
+
         .photo-box { width: 100%; aspect-ratio: 4 / 5; border-radius: 20px; overflow: hidden; background: #f8fafc; border: 2px dashed #cbd5e1; margin: 15px 0; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
-        #viewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; }
+        /* 💡 짤림 방지: 이미지 z-index를 올리고 기본 Hidden 처리 */
+        #viewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; opacity: 0; transition: opacity 0.2s; }
+        #viewImg.show { opacity: 1; } /* 💡 사진 로드 완료되면 싹 띄움 */
+        
         .photo-btn { z-index: 20; background: #FAE100; color: #3C1E1E; padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
         .input-text { color: #1e293b; font-weight: 700; outline: none; border: none; background: transparent; padding: 0;}
@@ -48,8 +48,8 @@
             </div>
             <div class="text-right flex flex-col items-end">
                 <p id="cardDate" class="text-[10px] text-slate-400 font-bold mb-2"></p>
-                <div class="score-input-wrapper" id="scoreWrapper">
-                    <input type="number" id="size" placeholder="스코어입력" class="input-text score-font">
+                <div class="score-input-wrapper">
+                    <input type="number" id="size" placeholder="스코어" class="input-text score-font">
                     <div id="size_fixed" class="fixed-text score-font"></div>
                 </div>
                 <span class="text-[10px] text-[#b59410] font-black tracking-widest mt-2">TOTAL SCORE</span>
@@ -63,7 +63,7 @@
                     📸 사진/스코어 등록
                 </div>
             </div>
-            <img id="viewImg" class="hidden">
+            <img id="viewImg">
             <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="loadFile(event)">
         </div>
 
@@ -121,44 +121,23 @@
 
     <script>
         lucide.createIcons();
-        document.getElementById('cardDate').innerText = new Date().toLocaleDateString('ko-KR', {year: 'numeric', month: 'long', day: 'numeric'});
+        document.getElementById('cardDate').innerText = new Date().toLocaleDateString();
 
-        // 💡 [자동 해결 로직] 글자가 박스를 넘치면 폰트 크기를 자동으로 줄이는 마법의 함수
-        function fitTextToBox(inputEl, wrapperEl) {
-            let fontSize = parseInt(window.getComputedStyle(inputEl).fontSize);
-            const maxWidth = wrapperEl.offsetWidth - parseInt(window.getComputedStyle(wrapperEl).paddingLeft) * 2;
-            
-            // 임시로 placeholder 글자 크기를 조절하기 위해 꼼수 부림
-            if (inputEl.value === "") {
-                inputEl.style.fontSize = "16px"; // 기본 크기로 리셋
-                while (inputEl.placeholder.length * 8 > maxWidth && fontSize > 8) { // placeholder 대략 너비 계산
-                    fontSize--;
-                    inputEl.style.fontSize = fontSize + "px";
-                }
-            } else {
-                // 숫자를 쓸 때는 원래 로직대로 수축
-                inputEl.style.fontSize = "50px"; // 기본 크기로 리셋
-                while (inputEl.scrollWidth > maxWidth && fontSize > 20) {
-                    fontSize--;
-                    inputEl.style.fontSize = fontSize + "px";
-                }
-            }
-        }
-
-        // 스코어 입력창에 글자 바뀔 때마다 자동 조절 함수 실행
-        const scoreInput = document.getElementById('size');
-        const scoreWrapper = document.getElementById('scoreWrapper');
-        scoreInput.addEventListener('input', () => fitTextToBox(scoreInput, scoreWrapper));
-        
-        // 앱 켜질 때도 한 번 실행 (placeholder 조절)
-        fitTextToBox(scoreInput, scoreWrapper);
-
+        // 💡 [원샷원킬 해결] 사진 등록 로직 전면 수정
         function loadFile(e) {
             const file = e.target.files[0];
             if(!file) return;
+            
+            // 이전 이미지 찌꺼기 싹 청소
+            const viewImg = document.getElementById('viewImg');
+            viewImg.classList.remove('show');
+            viewImg.src = ''; 
+            
             const reader = new FileReader();
             reader.onload = (ev) => {
                 const img = new Image();
+                
+                // 💡 [핵심] 브라우저한테 "사진 진짜 로딩 끝났어? 확실해?"라고 확인 후 실행
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const max = 1500;
@@ -166,9 +145,15 @@
                     if (w > h) { if (w > max) { h *= max/w; w = max; } }
                     else { if (h > max) { w *= max/h; h = max; } }
                     canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    document.getElementById('viewImg').src = canvas.toDataURL('image/jpeg', 0.95);
-                    document.getElementById('viewImg').classList.remove('hidden');
+                    
+                    const ctx = canvas.getContext('2d');
+                    // 이미지 그리기 전에 캔버스 초기화
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    
+                    // 💡 [핵심] 캔버스에 그리는 것까지 완벽히 끝난 후 화면에 띄움
+                    viewImg.src = canvas.toDataURL('image/jpeg', 0.95);
+                    viewImg.classList.add('show'); // 싹 띄움
                     document.getElementById('uploadGuide').classList.add('hidden');
                 };
                 img.src = ev.target.result;
@@ -183,7 +168,7 @@
             const baitReview = document.getElementById('bait');
             const imgEl = document.getElementById('viewImg');
             
-            if(!fishCC.value || !scoreSize.value || imgEl.classList.contains('hidden')) {
+            if(!fishCC.value || !scoreSize.value || !imgEl.classList.contains('show')) {
                 return alert('골프장 이름, 스코어, 사진은 필수입니다!');
             }
 
@@ -193,14 +178,16 @@
             document.getElementById('loc_fixed').innerText = locCourse.value || ' ';
             document.getElementById('bait_fixed').innerText = baitReview.value || ' ';
             
-            window.scrollTo(0, 0);
             area.classList.add('rendering');
-
+            // 스크롤 맨 위로 올려서 캡처 에러 방지
+            window.scrollTo(0, 0);
+            
             const canvas = await html2canvas(area, { 
-                scale: 3, 
+                scale: 2.5, 
                 backgroundColor: '#ffffff',
                 useCORS: true,
-                logging: false
+                logging: false,
+                y: window.scrollY
             });
             area.classList.remove('rendering');
 
