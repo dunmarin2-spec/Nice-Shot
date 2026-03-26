@@ -10,149 +10,115 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&family=Playfair+Display:ital,wght@1,900&display=swap');
         
-        /* 💡 전체 화면 꽉 채우기 설정 */
-        html, body { 
-            overflow-x: hidden; 
-            width: 100%; 
-            height: 100%; 
-            margin: 0; 
-            padding: 0;
-            background-color: #ffffff; 
-        }
-        body { 
-            font-family: 'Pretendard', sans-serif; 
-            -webkit-tap-highlight-color: transparent;
-            display: flex;
-            flex-direction: column;
-        }
+        html, body { overflow-x: hidden; width: 100%; min-height: 100%; margin: 0; padding: 0; background-color: #f8fafc; }
+        body { font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; position: relative; }
 
-        /* 💡 폰 화면에 꽉 차는 카드 디자인 */
-        .golf-card { 
-            width: 100%; 
-            max-width: 500px; /* PC에서 볼 때 너무 커지는 것 방지 */
-            margin: 0 auto;
-            background: #ffffff; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            position: relative; 
-            flex: 1; /* 높이 꽉 채우기 */
-        }
-        
+        /* 💡 캡처 영역 */
+        .golf-card { width: 100%; max-width: 500px; margin: 0 auto; background: #ffffff; padding: 20px; display: flex; flex-direction: column; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .card-logo { font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic; color: #1e293b; letter-spacing: -1px; line-height: 0.8; }
         
-        /* 사진 영역 (화면 비율에 맞게 큼직하게) */
-        .photo-box { 
-            width: 100%; 
-            flex: 1; /* 남는 공간 사진에 올인 */
-            min-height: 300px;
-            border-radius: 20px; 
-            overflow: hidden; 
-            background: #f8fafc; 
-            border: 2px dashed #e2e8f0; 
-            margin: 15px 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            position: relative; 
-        }
-        #viewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
-        .photo-btn { z-index: 2; background: #FAE100; color: #3C1E1E; padding: 14px 24px; border-radius: 15px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        /* 💡 스코어 입력창 강조 (박스 테두리 추가) */
+        .score-input-wrapper { background: #fffbeb; border: 2px solid #b59410; border-radius: 12px; padding: 5px 10px; position: relative; }
+        .score-font { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 56px; line-height: 1; color: #b59410; text-align: right; width: 100px; }
+        .rendering .score-input-wrapper { border: none; background: transparent; padding: 0; }
+        
+        /* 사진 영역 */
+        .photo-box { width: 100%; aspect-ratio: 4 / 5; border-radius: 20px; overflow: hidden; background: #f8fafc; border: 2px dashed #cbd5e1; margin: 15px 0; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+        #viewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; }
+        .photo-btn { z-index: 20; background: #FAE100; color: #3C1E1E; padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
         .input-text { color: #1e293b; font-weight: 700; outline: none; border: none; background: transparent; padding: 0;}
         .rendering .input-text { display: none !important; }
         .fixed-text { display: none; color: #1e293b; font-weight: 700; word-break: break-all; white-space: pre-wrap; text-transform: uppercase;}
         .rendering .fixed-text { display: block !important; }
-        
-        .score-font { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 64px; line-height: 1; color: #b59410; }
-        .rendering .score-font { display: block !important; color: #b59410 !important; }
 
-        /* 저장 버튼 하단 고정 */
-        .bottom-btn { width: 100%; max-width: 500px; margin: 0 auto; padding: 15px; background: #ffffff; border-top: 1px solid #f1f5f9; }
+        /* 하단 버튼 영역 - z-index 최상단으로 올려서 클릭 방해 차단 */
+        .bottom-area { width: 100%; max-width: 500px; margin: 0 auto; padding: 20px; position: relative; z-index: 999; }
     </style>
 </head>
 <body>
-    <div class="golf-card" id="captureArea">
-        <div class="flex justify-between items-start pt-4 mb-2">
+    <div id="captureArea" class="golf-card">
+        <div class="flex justify-between items-start pt-4 mb-4">
             <div class="flex flex-col">
                 <span class="card-logo text-5xl">NICE</span>
                 <span class="card-logo text-5xl">SHOT</span>
             </div>
             <div class="text-right flex flex-col items-end">
                 <p id="cardDate" class="text-[10px] text-slate-400 font-bold mb-1"></p>
-                <div class="relative">
-                    <input type="text" id="size" placeholder="72" class="input-text score-font w-24 text-right">
-                    <div id="size_fixed" class="fixed-text score-font w-24 text-right"></div>
+                <div class="score-input-wrapper">
+                    <input type="number" id="size" placeholder="72" class="input-text score-font">
+                    <div id="size_fixed" class="fixed-text score-font"></div>
                 </div>
-                <span class="text-[11px] text-[#b59410] font-black tracking-widest mt-[-5px]">TOTAL SCORE</span>
+                <span class="text-[10px] text-[#b59410] font-black tracking-widest mt-1">TOTAL SCORE</span>
             </div>
         </div>
         
         <div class="photo-box" onclick="document.getElementById('fileInput').click()">
             <div id="uploadGuide" class="flex flex-col items-center gap-3">
                 <div class="photo-btn flex items-center gap-2">
-                    <i data-lucide="camera" class="w-6 h-6"></i>
-                    사진/스코어카드 등록
+                    <i data-lucide="camera" class="w-5 h-5"></i>
+                    📸 사진/스코어 등록
                 </div>
-                <p class="text-xs text-slate-400 font-bold">인생샷을 골라주세요</p>
             </div>
             <img id="viewImg" class="hidden">
             <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="loadFile(event)">
         </div>
 
-        <div class="space-y-3 mb-4">
+        <div class="space-y-3 mb-6">
             <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Golf Club / CC</p>
+                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Golf Club / CC</p>
                 <div class="relative">
                     <input type="text" id="fish" placeholder="골프장 이름 입력" class="input-text text-sm w-full text-black">
                     <div id="fish_fixed" class="fixed-text text-sm w-full text-black"></div>
                 </div>
             </div>
-            
             <div class="grid grid-cols-2 gap-3">
                 <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Course/Hole</p>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Course</p>
                     <div class="relative">
-                        <input type="text" id="loc" placeholder="코스 명칭" class="input-text text-[12px] w-full text-black">
+                        <input type="text" id="loc" placeholder="남코스" class="input-text text-[12px] w-full text-black">
                         <div id="loc_fixed" class="fixed-text text-[12px] w-full text-black"></div>
                     </div>
                 </div>
                 <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">With</p>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">With</p>
                     <input type="text" placeholder="동반자 성함" class="input-text text-[12px] w-full text-black">
                 </div>
             </div>
-
-            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 min-h-[80px]">
-                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Rounding Review</p>
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 min-h-[60px]">
+                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Review</p>
                 <div class="relative">
-                    <textarea id="bait" placeholder="오늘 라운딩은 어떠셨나요?" class="input-text text-[12px] w-full h-12 resize-none leading-tight text-black"></textarea>
-                    <div id="bait_fixed" class="fixed-text text-[12px] w-full h-12 resize-none leading-tight text-black"></div>
+                    <textarea id="bait" placeholder="오늘 라운딩은 어떠셨나요?" class="input-text text-[12px] w-full h-12 resize-none text-black"></textarea>
+                    <div id="bait_fixed" class="fixed-text text-[12px] w-full h-12 text-black"></div>
                 </div>
             </div>
         </div>
-        <p class="text-[8px] text-center text-slate-300 italic mb-2">Powered by Nice Shot Guard</p>
+        <p class="text-[8px] text-center text-slate-300 italic">Powered by Nice Shot Guard</p>
     </div>
 
-    <div class="bottom-btn">
-        <button onclick="saveAndExport()" class="w-full bg-slate-900 text-white font-black p-5 rounded-2xl shadow-xl flex items-center justify-center gap-3 active:scale-95 transition text-lg mb-4">
+    <div class="bottom-area">
+        <button onclick="saveAndExport()" class="w-full bg-slate-900 text-white font-black p-5 rounded-2xl shadow-xl flex items-center justify-center gap-3 active:scale-95 transition text-lg mb-6">
             <i data-lucide="download" class="w-6 h-6 text-[#FAE100]"></i> 갤러리에 초고화질 저장
         </button>
         
-        <div class="flex gap-2">
-            <a href="https://qr.kakaopay.com/FRK8J0SAD" target="_blank" class="flex-1 flex items-center justify-center gap-2 bg-[#FAE100] text-[#3C1E1E] py-3 rounded-xl font-bold text-xs shadow active:scale-95 transition">
-                커피 후원 ☕
+        <div class="flex flex-col gap-3">
+            <a href="https://qr.kakaopay.com/FRK8J0SAD" target="_blank" style="display: flex !important;" class="flex items-center justify-center gap-2 bg-[#FAE100] text-[#3C1E1E] py-4 rounded-xl font-bold text-sm shadow cursor-pointer">
+                커피 후원하기 ☕
             </a>
-            <a href="https://www.coupang.com/np/search?channel=user_side_view&q=%EA%B3%A8%ED%94%84%EC%9A%A9%ED%92%88" target="_blank" class="flex-1 flex items-center justify-center gap-2 bg-slate-800 text-white py-3 rounded-xl font-bold text-xs shadow active:scale-95 transition">
-                골프용품 검색 ⛳
-            </a>
+            
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                <form action="https://www.coupang.com/np/search" method="get" target="_blank" class="flex gap-2">
+                    <input type="hidden" name="channel" value="user_side_view">
+                    <input type="text" name="q" placeholder="골프용품 검색" class="flex-grow p-2.5 border rounded-lg text-sm bg-slate-50 outline-none text-black">
+                    <button type="submit" class="bg-slate-800 text-white px-4 rounded-lg font-bold text-xs cursor-pointer">검색</button>
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
-        document.getElementById('cardDate').innerText = new Date().toLocaleDateString('ko-KR', {year: 'numeric', month: 'long', day: 'numeric'});
+        document.getElementById('cardDate').innerText = new Date().toLocaleDateString();
 
         function loadFile(e) {
             const file = e.target.files[0];
@@ -184,38 +150,26 @@
             const baitReview = document.getElementById('bait');
             const imgEl = document.getElementById('viewImg');
             
-            if(!fishCC.value || imgEl.classList.contains('hidden')) {
-                return alert('골프장 이름과 사진은 필수입니다, 형님!');
+            if(!fishCC.value || !scoreSize.value || imgEl.classList.contains('hidden')) {
+                return alert('골프장 이름, 스코어, 사진은 필수입니다!');
             }
 
             const area = document.getElementById('captureArea');
             document.getElementById('fish_fixed').innerText = fishCC.value || ' ';
-            document.getElementById('size_fixed').innerText = scoreSize.value || '72';
+            document.getElementById('size_fixed').innerText = scoreSize.value || '00';
             document.getElementById('loc_fixed').innerText = locCourse.value || ' ';
             document.getElementById('bait_fixed').innerText = baitReview.value || ' ';
             
             area.classList.add('rendering');
-            // 💡 캡처 시 카드 영역만 깔끔하게 따기 위해 width 지정
-            const canvas = await html2canvas(area, { 
-                scale: 2.5, 
-                backgroundColor: '#ffffff',
-                width: area.offsetWidth,
-                height: area.offsetHeight
-            });
+            const canvas = await html2canvas(area, { scale: 2.5, backgroundColor: '#ffffff' });
             area.classList.remove('rendering');
 
             const cardImgData = canvas.toDataURL('image/png');
             const link = document.createElement('a');
-            link.download = `NiceShot_${new Date().toISOString().slice(2,10)}_${fishCC.value}.png`;
+            link.download = `NiceShot_${new Date().toISOString().slice(2,10)}.png`;
             link.href = cardImgData;
             link.click();
-
-            alert('인생샷이 갤러리에 저장되었습니다! ⛳️');
-
-            [fishCC, scoreSize, locCourse, baitReview].forEach(i => i.value = '');
-            imgEl.src = '';
-            imgEl.classList.add('hidden');
-            document.getElementById('uploadGuide').classList.remove('hidden');
+            alert('갤러리에 저장되었습니다! ⛳️');
         }
     </script>
 </body>
