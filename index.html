@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>나이스샷 가드 v5.2</title>
+    <title>나이스샷 가드 v5.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -13,15 +13,12 @@
         body { font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
         .golf-card { width: 100%; max-width: 500px; margin: 0 auto; background: #ffffff; padding: 25px 20px; display: flex; flex-direction: column; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .card-logo { font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic; color: #1e293b; letter-spacing: -1px; line-height: 0.8; }
-        
         .score-input-wrapper { background: #fffbeb; border: 2px solid #b59410; border-radius: 12px; position: relative; display: flex; align-items: center; justify-content: center; width: 115px; height: 80px; padding: 0; }
         .score-font { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 44px !important; color: #b59410; text-align: center; width: 100%; background: transparent; border: none; outline: none; line-height: 80px; }
         .score-font::placeholder { font-size: 14px !important; color: #d4af37; font-weight: 600; text-align: center; opacity: 0.7; }
-        
         .photo-box { width: 100%; aspect-ratio: 4 / 5; border-radius: 20px; overflow: hidden; background: #f8fafc; border: 2px dashed #cbd5e1; margin: 15px 0; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
         #viewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; display: none; }
         .photo-btn { z-index: 20; background: #FAE100; color: #3C1E1E; padding: 14px 24px; border-radius: 12px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
         .input-text { color: #1e293b; font-weight: 700; outline: none; border: none; background: transparent; padding: 0;}
         .rendering .input-text { display: none !important; }
         .fixed-text { display: none; color: #1e293b; font-weight: 700; word-break: break-all; white-space: pre-wrap; text-transform: uppercase;}
@@ -88,7 +85,7 @@
             
             <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
                 <form action="https://www.coupang.com/np/search" method="get" target="_blank" class="flex gap-2">
-                    <input type="hidden" name="channel" value="user_side_view">
+                    <input type="hidden" name="channel" value="AF4757238">
                     <input type="text" name="q" placeholder="골프용품 최저가 검색" class="flex-grow p-2.5 border rounded-lg text-sm bg-slate-50 outline-none text-black">
                     <button type="submit" class="bg-slate-800 text-white px-4 rounded-lg font-bold text-xs cursor-pointer">검색</button>
                 </form>
@@ -119,22 +116,18 @@
             const fishCC = document.getElementById('fish');
             const scoreSize = document.getElementById('size');
             const imgEl = document.getElementById('viewImg');
-            
             if(!fishCC.value || !scoreSize.value || imgEl.style.display === 'none') {
                 return alert('골프장 이름, 스코어, 사진은 필수입니다!');
             }
-
             const area = document.getElementById('captureArea');
             document.getElementById('fish_fixed').innerText = fishCC.value;
             document.getElementById('size_fixed').innerText = scoreSize.value;
             document.getElementById('loc_fixed').innerText = document.getElementById('loc').value || ' ';
             document.getElementById('bait_fixed').innerText = document.getElementById('bait').value || ' ';
-            
             area.classList.add('rendering');
             window.scrollTo(0, 0);
             const canvas = await html2canvas(area, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
             area.classList.remove('rendering');
-
             const link = document.createElement('a');
             link.download = `NiceShot_${new Date().getTime()}.png`;
             link.href = canvas.toDataURL('image/png');
