@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>나이스샷 가드 (Nice Shot Guard)</title>
+    <title>나이스샷 가드 v5.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -13,12 +13,15 @@
         body { font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
         .golf-card { width: 100%; max-width: 500px; margin: 0 auto; background: #ffffff; padding: 25px 20px; display: flex; flex-direction: column; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .card-logo { font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic; color: #1e293b; letter-spacing: -1px; line-height: 0.8; }
-        .score-input-wrapper { background: #fffbeb; border: 2px solid #b59410; border-radius: 12px; position: relative; display: flex; align-items: center; justify-content: center; width: 110px; height: 75px; overflow: visible; }
-        .score-font { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 44px; line-height: 1; color: #b59410; text-align: center; width: 100%; background: transparent; padding-top: 5px; }
+        
+        /* 💡 스코어 박스 - 여백 넉넉히 줘서 짤림 방지 */
+        .score-input-wrapper { background: #fffbeb; border: 2px solid #b59410; border-radius: 12px; position: relative; display: flex; align-items: center; justify-content: center; width: 115px; height: 80px; padding: 5px; }
+        .score-font { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 44px; color: #b59410; text-align: center; width: 100%; background: transparent; line-height: 1.2; }
+        
         .photo-box { width: 100%; aspect-ratio: 4 / 5; border-radius: 20px; overflow: hidden; background: #f8fafc; border: 2px dashed #cbd5e1; margin: 15px 0; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
-        /* 💡 display: none 대신 opacity로 제어해서 렌더링 씹힘 방지 */
-        #viewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; opacity: 0; pointer-events: none; }
-        .photo-btn { z-index: 20; background: #FAE100; color: #3C1E1E; padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; }
+        #viewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; display: none; }
+        .photo-btn { z-index: 20; background: #FAE100; color: #3C1E1E; padding: 14px 24px; border-radius: 12px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
         .input-text { color: #1e293b; font-weight: 700; outline: none; border: none; background: transparent; padding: 0;}
         .rendering .input-text { display: none !important; }
         .fixed-text { display: none; color: #1e293b; font-weight: 700; word-break: break-all; white-space: pre-wrap; text-transform: uppercase;}
@@ -42,9 +45,10 @@
             </div>
         </div>
         
-        <div class="photo-box" id="dropArea" onclick="document.getElementById('fileInput').click()">
+        <div class="photo-box" onclick="document.getElementById('fileInput').click()">
             <div id="uploadGuide" class="flex flex-col items-center gap-3">
-                <div class="photo-btn flex items-center gap-2"><i data-lucide="camera" class="w-5 h-5"></i>📸 사진 등록</div>
+                <div class="photo-btn flex items-center gap-2"><i data-lucide="camera" class="w-6 h-6"></i>📸 라운딩 사진 등록</div>
+                <p class="text-xs text-slate-400 font-bold italic">터치해서 인생샷을 선택하세요</p>
             </div>
             <img id="viewImg" src="">
             <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="previewImage(this)">
@@ -59,17 +63,17 @@
             <div class="grid grid-cols-2 gap-3">
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Course</p>
-                    <input type="text" id="loc" placeholder="코스" class="input-text text-[12px] w-full text-black">
+                    <input type="text" id="loc" placeholder="코스 명칭" class="input-text text-[12px] w-full text-black">
                     <div id="loc_fixed" class="fixed-text text-[12px] w-full text-black"></div>
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">With</p>
-                    <input type="text" placeholder="동반자" class="input-text text-[12px] w-full text-black">
+                    <input type="text" placeholder="동반자 성함" class="input-text text-[12px] w-full text-black">
                 </div>
             </div>
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 min-h-[70px]">
-                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Review</p>
-                <textarea id="bait" placeholder="오늘 라운딩 평..." class="input-text text-[12px] w-full h-12 resize-none text-black"></textarea>
+                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Rounding Review</p>
+                <textarea id="bait" placeholder="오늘 라운딩은 어떠셨나요?" class="input-text text-[12px] w-full h-12 resize-none text-black"></textarea>
                 <div id="bait_fixed" class="fixed-text text-[12px] w-full h-12 text-black"></div>
             </div>
         </div>
@@ -81,29 +85,31 @@
             <i data-lucide="download" class="w-6 h-6 text-[#FAE100]"></i> 갤러리에 초고화질 저장
         </button>
         <div class="flex flex-col gap-3">
-            <a href="https://qr.kakaopay.com/FRK8J0SAD" target="_blank" class="flex items-center justify-center gap-2 bg-[#FAE100] text-[#3C1E1E] py-4 rounded-xl font-bold text-sm shadow">커피 후원하기 ☕</a>
+            <a href="https://qr.kakaopay.com/FRK8J0SAD" target="_blank" class="flex items-center justify-center gap-2 bg-[#FAE100] text-[#3C1E1E] py-4 rounded-xl font-bold text-sm shadow">☕ 커피 후원하기 (찬둥)</a>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
-        document.getElementById('cardDate').innerText = new Date().toLocaleDateString();
+        document.getElementById('cardDate').innerText = new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'});
 
-        // 💡 [최종 해결책] 캔버스/리더 다 필요 없음. 그냥 꽂아버리기!
+        // 💡 [메모리 제로 로직] 주소를 빌려쓰고 즉시 반납함
+        let currentUrl = null;
         function previewImage(input) {
             if (input.files && input.files[0]) {
                 const img = document.getElementById('viewImg');
                 const guide = document.getElementById('uploadGuide');
                 
-                // 💡 기존에 혹시 생성된 주소가 있다면 메모리 해제
-                if (img.src.startsWith('blob:')) {
-                    URL.revokeObjectURL(img.src);
-                }
+                // 💡 이전 메모리 청소 (가장 중요!)
+                if (currentUrl) URL.revokeObjectURL(currentUrl);
                 
-                // 💡 브라우저가 생성한 이미지 주소를 직접 할당 (가장 빠르고 확실함)
-                img.src = URL.createObjectURL(input.files[0]);
-                img.style.opacity = '1';
+                currentUrl = URL.createObjectURL(input.files[0]);
+                img.src = currentUrl;
+                img.style.display = 'block';
                 guide.style.display = 'none';
+                
+                // 인풋값 초기화해서 브라우저가 사진을 꽉 쥐고 있지 않게 함
+                input.value = "";
             }
         }
 
@@ -112,8 +118,8 @@
             const scoreSize = document.getElementById('size');
             const imgEl = document.getElementById('viewImg');
             
-            if(!fishCC.value || !scoreSize.value || imgEl.style.opacity === '0') {
-                return alert('골프장 이름, 스코어, 사진은 필수입니다!');
+            if(!fishCC.value || !scoreSize.value || imgEl.style.display === 'none') {
+                return alert('골프장 이름, 스코어, 사진은 필수입니다, 형님!');
             }
 
             const area = document.getElementById('captureArea');
@@ -125,14 +131,15 @@
             area.classList.add('rendering');
             window.scrollTo(0, 0);
             
-            const canvas = await html2canvas(area, { scale: 2.5, backgroundColor: '#ffffff', useCORS: true });
+            // 💡 scale 2로 살짝 낮춰서 저장 시 튕김 방지 (그래도 고화질입니다)
+            const canvas = await html2canvas(area, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
             area.classList.remove('rendering');
 
             const link = document.createElement('a');
             link.download = `NiceShot_${new Date().getTime()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-            alert('갤러리에 저장되었습니다! ⛳️');
+            alert('인생샷이 갤러리에 저장되었습니다! ⛳️');
         }
     </script>
 </body>
