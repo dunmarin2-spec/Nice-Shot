@@ -3,16 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>나이스샷 가드 v5.3</title>
+    <title>나이스샷 가드 v5.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&family=Playfair+Display:ital,wght@1,900&display=swap');
+        /* 💡 필기체 느낌을 위해 가독성 좋은 손글씨 폰트 하나 더 추가했습니다 */
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&family=Playfair+Display:ital,wght@1,900&family=Nanum+Pen+Script&display=swap');
+        
         html, body { overflow-x: hidden; width: 100%; min-height: 100%; margin: 0; padding: 0; background-color: #f8fafc; }
         body { font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
         .golf-card { width: 100%; max-width: 500px; margin: 0 auto; background: #ffffff; padding: 25px 20px; display: flex; flex-direction: column; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .card-logo { font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic; color: #1e293b; letter-spacing: -1px; line-height: 0.8; }
+        
+        /* 💡 찬둥의 필기체 스타일 */
+        .chan-doong-signature { font-family: 'Nanum Pen Script', cursive; font-size: 24px; color: #b59410; transform: rotate(-10deg); margin-bottom: -10px; margin-left: 5px; z-index: 50; }
+        
         .score-input-wrapper { background: #fffbeb; border: 2px solid #b59410; border-radius: 12px; position: relative; display: flex; align-items: center; justify-content: center; width: 115px; height: 80px; padding: 0; }
         .score-font { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 44px !important; color: #b59410; text-align: center; width: 100%; background: transparent; border: none; outline: none; line-height: 80px; }
         .score-font::placeholder { font-size: 14px !important; color: #d4af37; font-weight: 600; text-align: center; opacity: 0.7; }
@@ -29,7 +35,8 @@
 <body>
     <div id="captureArea" class="golf-card">
         <div class="flex justify-between items-start pt-4 mb-4">
-            <div class="flex flex-col">
+            <div class="flex flex-col relative">
+                <span class="chan-doong-signature">찬둥의</span>
                 <span class="card-logo text-5xl">NICE</span><span class="card-logo text-5xl">SHOT</span>
             </div>
             <div class="text-right flex flex-col items-end">
