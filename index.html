@@ -25,9 +25,9 @@
         .rendering .score-font { padding-top: 10px; } 
 
         .photo-box { width: 100%; aspect-ratio: 4 / 5; border-radius: 20px; overflow: hidden; background: #f8fafc; border: 2px dashed #cbd5e1; margin: 15px 0; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
-        /* 💡 짤림 방지: 이미지 z-index를 올리고 기본 Hidden 처리 */
-        #viewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; opacity: 0; transition: opacity 0.2s; }
-        #viewImg.show { opacity: 1; } /* 💡 사진 로드 완료되면 싹 띄움 */
+        
+        /* 💡 이미지 기본 숨김, 로드 완료 시 보임 */
+        #viewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; display: none; }
         
         .photo-btn { z-index: 20; background: #FAE100; color: #3C1E1E; padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
@@ -63,7 +63,7 @@
                     📸 사진/스코어 등록
                 </div>
             </div>
-            <img id="viewImg">
+            <img id="viewImg" src="">
             <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="loadFile(event)">
         </div>
 
@@ -106,7 +106,7 @@
         
         <div class="flex flex-col gap-3">
             <a href="https://qr.kakaopay.com/FRK8J0SAD" target="_blank" style="display: flex !important;" class="flex items-center justify-center gap-2 bg-[#FAE100] text-[#3C1E1E] py-4 rounded-xl font-bold text-sm shadow cursor-pointer">
-            찬둥에게 커피 후원하기 ☕
+                찬둥에게 커피 후원하기 ☕
             </a>
             
             <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
@@ -123,41 +123,29 @@
         lucide.createIcons();
         document.getElementById('cardDate').innerText = new Date().toLocaleDateString();
 
-        // 💡 [원샷원킬 해결] 사진 등록 로직 전면 수정
+        // 💡 [해결] FileReader를 사용한 고전적이고 가장 확실한 로드 방식
         function loadFile(e) {
             const file = e.target.files[0];
             if(!file) return;
             
-            // 이전 이미지 찌꺼기 싹 청소
-            const viewImg = document.getElementById('viewImg');
-            viewImg.classList.remove('show');
-            viewImg.src = ''; 
-            
             const reader = new FileReader();
-            reader.onload = (ev) => {
-                const img = new Image();
+            
+            // 파일 읽기가 완전히 끝났을 때만 실행
+            reader.onload = function(event) {
+                const viewImg = document.getElementById('viewImg');
+                const uploadGuide = document.getElementById('uploadGuide');
                 
-                // 💡 [핵심] 브라우저한테 "사진 진짜 로딩 끝났어? 확실해?"라고 확인 후 실행
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const max = 1500;
-                    let w = img.width, h = img.height;
-                    if (w > h) { if (w > max) { h *= max/w; w = max; } }
-                    else { if (h > max) { w *= max/h; h = max; } }
-                    canvas.width = w; canvas.height = h;
-                    
-                    const ctx = canvas.getContext('2d');
-                    // 이미지 그리기 전에 캔버스 초기화
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0, w, h);
-                    
-                    // 💡 [핵심] 캔버스에 그리는 것까지 완벽히 끝난 후 화면에 띄움
-                    viewImg.src = canvas.toDataURL('image/jpeg', 0.95);
-                    viewImg.classList.add('show'); // 싹 띄움
-                    document.getElementById('uploadGuide').classList.add('hidden');
+                // 이미지 데이터(Base64)를 직접 주입
+                viewImg.src = event.target.result;
+                
+                // 이미지가 브라우저 메모리에 완전히 올라갔는지 한 번 더 확인
+                viewImg.onload = function() {
+                    viewImg.style.display = 'block';
+                    uploadGuide.style.display = 'none';
                 };
-                img.src = ev.target.result;
             };
+            
+            // 파일을 데이터 URL 형식으로 읽기 시작
             reader.readAsDataURL(file);
         }
 
@@ -168,7 +156,8 @@
             const baitReview = document.getElementById('bait');
             const imgEl = document.getElementById('viewImg');
             
-            if(!fishCC.value || !scoreSize.value || !imgEl.classList.contains('show')) {
+            // display 상태로 체크
+            if(!fishCC.value || !scoreSize.value || imgEl.style.display === 'none') {
                 return alert('골프장 이름, 스코어, 사진은 필수입니다!');
             }
 
@@ -179,7 +168,6 @@
             document.getElementById('bait_fixed').innerText = baitReview.value || ' ';
             
             area.classList.add('rendering');
-            // 스크롤 맨 위로 올려서 캡처 에러 방지
             window.scrollTo(0, 0);
             
             const canvas = await html2canvas(area, { 
