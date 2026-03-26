@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>나이스샷 가드 (Nice Shot Guard) - 골프 스코어 인증</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&family=Playfair+Display:ital,wght@1,900&display=swap');
+        
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; color: #1e293b; -webkit-tap-highlight-color: transparent; padding-bottom: 40px;}
+        
+        /* 💡 골프 매거진 컨셉의 럭셔리 카드 디자인 */
+        .golf-card { width: 100%; max-width: 380px; aspect-ratio: 9 / 14; background: #ffffff; padding: 25px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; margin: 0 auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border-radius: 24px; position: relative; overflow: hidden;}
+        .golf-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: linear-gradient(90deg, #b59410 0%, #f7dc6f 50%, #b59410 100%); } /* 상단 골드 포인트 */
+        
+        /* 메인 타이틀 (잡지 로고 느낌) */
+        .card-logo { font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic; color: #1e293b; letter-spacing: -2px; line-height: 0.9; }
+        
+        /* 사진 영역 */
+        .photo-box { width: 100%; height: 55%; border-radius: 16px; overflow: hidden; background: #f1f5f9; border: 1px solid #e2e8f0; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+        #viewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+        
+        /* 입력창 및 고정 텍스트 스타일 */
+        .input-text { color: #1e293b; font-weight: 700; outline: none; border: none; background: transparent; padding: 0;}
+        .rendering .photo-box { background: transparent !important; }
+        .rendering .input-text { display: none !important; } /* 캡처 시 입력창 숨김 */
+        .fixed-text { display: none; color: #1e293b; font-weight: 700; word-break: break-all; white-space: pre-wrap; text-transform: uppercase;}
+        .rendering .fixed-text { display: block !important; } /* 캡처 시 고정 텍스트 표시 */
+        
+        /* 스코어 폰트 */
+        .score-font { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 72px; line-height: 1; color: #b59410; }
+        .rendering .score-font { display: block !important; color: #b59410 !important; }
+    </style>
+</head>
+<body class="py-10 px-4">
+    <div class="max-w-md mx-auto min-h-screen">
+        <header class="text-center mb-10 px-2">
+            <h1 class="text-3xl font-black text-slate-900 tracking-tighter flex items-center justify-center gap-2">
+                <i data-lucide="flag" class="w-7 h-7 text-[#b59410]"></i> NICE SHOT GUARD
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">골프 스코어 인생샷 생성기 v1.0</p>
+        </header>
+
+        <section id="captureArea" class="golf-card mb-10 bg-white">
+            <div class="flex justify-between items-start mb-5 pb-3 border-b border-slate-200">
+                <div class="flex flex-col gap-1">
+                    <span class="card-logo text-5xl">GOLF</span>
+                    <span class="card-logo text-5xl">SCORE</span>
+                </div>
+                <div class="text-right flex flex-col items-end gap-1">
+                    <p id="cardDate" class="text-[10px] text-slate-500 font-bold mb-1"></p>
+                    <div class="relative">
+                        <input type="text" id="size" placeholder="72" class="input-text score-font w-28 text-right p-0">
+                        <div id="size_fixed" class="fixed-text score-font w-28 text-right p-0"></div>
+                    </div>
+                    <span class="text-xs text-[#b59410] font-black tracking-widest mt-[-8px]">TOTAL SCORE</span>
+                </div>
+            </div>
+            
+            <div class="photo-box" onclick="document.getElementById('fileInput').click()">
+                <div id="uploadGuide" class="text-slate-300 flex flex-col items-center">
+                    <i data-lucide="camera" class="w-10 h-10 opacity-60"></i>
+                    <p class="text-[11px] font-bold mt-1 text-slate-400">인생샷/스코어카드 사진 등록</p>
+                </div>
+                <img id="viewImg" class="hidden">
+                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="loadFile(event)">
+            </div>
+
+            <div class="space-y-4 flex-grow text-black">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 overflow-hidden min-h-[55px]">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
+                        <i data-lucide="map-pin" class="w-3 h-3 text-[#b59410]"></i> GOLF CLUB / CC
+                    </p>
+                    <div class="relative">
+                        <input type="text" id="fish" placeholder="가평 베네스트 CC" class="input-text text-sm w-full text-black p-0">
+                        <div id="fish_fixed" class="fixed-text text-sm w-full text-black p-0"></div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 overflow-hidden min-h-[55px]">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">COURSE / HOLE</p>
+                        <div class="relative">
+                            <input type="text" id="loc" placeholder="남코스 1~18홀" class="input-text text-xs w-full text-black p-0">
+                            <div id="loc_fixed" class="fixed-text text-xs w-full text-black p-0"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 overflow-hidden min-h-[55px]">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">WITH</p>
+                        <input type="text" placeholder="홍길동, 김철수..." class="input-text text-xs w-full text-black p-0">
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 overflow-hidden flex-grow min-h-[70px]">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                        <i data-lucide="message-square" class="w-3 h-3 text-[#b59410]"></i> ROUNDING REVIEW
+                    </p>
+                    <div class="relative flex-grow">
+                        <textarea id="bait" placeholder="전반전은 날씨 좋았는데 후반에 비옴. 버디 2개 달성! 라베 찍었다!" class="input-text text-xs w-full h-14 resize-none leading-tight p-0 text-black"></textarea>
+                        <div id="bait_fixed" class="fixed-text text-xs w-full h-14 resize-none leading-tight text-black"></div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-[8px] text-center text-slate-300 mt-5 italic tracking-wider">Powered by Nice Shot Guard</p>
+        </section>
+
+        <button onclick="saveAndExport()" class="w-full bg-slate-900 text-white font-black p-5 rounded-2xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition text-lg mb-10">
+            <i data-lucide="download" class="w-6 h-6 text-[#b59410]"></i> 스코어 인생샷 초고화질 저장
+        </button>
+
+        <div class="text-center mb-10">
+            <a href="https://qr.kakaopay.com/FRK8J0SAD" target="_blank" class="inline-flex items-center gap-2.5 bg-[#FAE100] text-[#3C1E1E] px-8 py-4 rounded-xl font-bold text-sm shadow-sm active:scale-95 transition">
+                <i data-lucide="cup-soda" class="w-5 h-5"></i> 골프버전 출시 축하! 커피 후원하기 ☕
+            </a>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-12">
+            <form action="https://www.coupang.com/np/search" method="get" target="_blank" class="flex gap-2">
+                <input type="hidden" name="channel" value="user_side_view">
+                <input type="text" name="q" placeholder="골프채/골프웨어 최저가 검색" class="flex-grow p-3.5 border rounded-xl text-sm bg-slate-50 outline-none text-black">
+                <button type="submit" class="bg-slate-800 text-white px-6 rounded-xl font-bold text-xs active:scale-95 transition">검색</button>
+            </form>
+            <p class="text-[10px] text-slate-400 mt-4 text-center">"이 포스팅은 쿠팡 파트너스 활동의 일환으로 수수료를 제공받습니다."</p>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        document.getElementById('cardDate').innerText = new Date().toLocaleDateString('ko-KR', {year: 'numeric', month: 'long', day: 'numeric'});
+
+        // 사진 로드
+        function loadFile(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const max = 1500; // 골프사진 화질 더 업그레이드
+                    let w = img.width, h = img.height;
+                    if (w > h) { if (w > max) { h *= max/w; w = max; } }
+                    else { if (h > max) { w *= max/h; h = max; } }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    document.getElementById('viewImg').src = canvas.toDataURL('image/jpeg', 0.98);
+                    document.getElementById('viewImg').classList.remove('hidden');
+                    document.getElementById('uploadGuide').style.display = 'none';
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 💡 핵심: 저장 및 고화질 생성 (Location 박카서 캡처)
+        async function saveAndExport() {
+            const fishCC = document.getElementById('fish');
+            const scoreSize = document.getElementById('size');
+            const locCourse = document.getElementById('loc');
+            const baitReview = document.getElementById('bait');
+            const imgEl = document.getElementById('viewImg');
+            
+            if(!fishCC.value || !scoreSize.value || imgEl.classList.contains('hidden')) {
+                return alert('형님, 사진이랑 골프장 이름, 스코어는 꼭 넣어주십쇼!');
+            }
+
+            const area = document.getElementById('captureArea');
+            
+            // 💡 [비밀 작전 1] 캡처 전에 입력 박스들의 글자를 고정 텍스트 박스로 복사! (박카서 캡처 완벽 해결)
+            document.getElementById('fish_fixed').innerText = fishCC.value || ' ';
+            document.getElementById('size_fixed').innerText = scoreSize.value || '72';
+            document.getElementById('loc_fixed').innerText = locCourse.value || ' ';
+            document.getElementById('bait_fixed').innerText = baitReview.value || ' ';
+            
+            // 💡 [비밀 작전 2] 캡처용 스타일 적용 (입력창 숨기고 고정 텍스트 표시)
+            area.classList.add('rendering');
+
+            // 💡 [초고화질 세팅] 골프니까 더 선명하게 scale 2.5
+            const canvas = await html2canvas(area, { 
+                scale: 2.5, 
+                backgroundColor: '#ffffff'
+            });
+
+            // 💡 [비밀 작전 3] 캡처 끝났으니 입력창 원상복구
+            area.classList.remove('rendering');
+
+            // 갤러리 다운로드
+            const cardImgData = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            // 파일명에 골프장 이름 박히게 수정
+            link.download = `NiceShot_${new Date().toISOString().slice(2,10)}_${fishCC.value}.png`;
+            link.href = cardImgData;
+            link.click();
+
+            alert('형님! 인스타 떡상용 스코어 인증샷 갤러리에 저장했습니다! ⛳️');
+
+            // 초기화
+            [fishCC, scoreSize, locCourse, baitReview].forEach(i => i.value = '');
+            imgEl.src = '';
+            imgEl.classList.add('hidden');
+            document.getElementById('uploadGuide').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
